@@ -224,7 +224,7 @@ public class BParticleSimMesh : MonoBehaviour
             Vector3 planeNorm = plane.normal;
             Vector3 temp = particles[i].position - planePos;
             float particleDistance = Vector3.Dot(temp, planeNorm);
-            if (particleDistance <= 0f)
+            if (particleDistance < 0f)
             {
                 if (particles[i].attachedToContact == false)
                 {
@@ -243,10 +243,16 @@ public class BParticleSimMesh : MonoBehaviour
                 Vector3 springTerm = -particles[i].contactSpring.ks * penDepth * planeNorm;
 
                 Vector3 dampingTerm = particles[i].contactSpring.kd * particles[i].velocity;
+                //Vector3 dampingTerm = particles[i].contactSpring.kd * Vector3.Dot(particles[i].velocity, planeNorm) * planeNorm;
 
                 Vector3 penaltyForce = springTerm - dampingTerm;
 
-                particles[i].currentForces += penaltyForce;
+                if (Vector3.Dot(penaltyForce, planeNorm) > 0)
+                {
+                    particles[i].currentForces += penaltyForce;
+                }
+
+                //particles[i].currentForces += penaltyForce;
 
                 ///sticky plane?
                 /*float vNorm = Vector3.Dot(particles[i].velocity, planeNorm);
@@ -287,8 +293,7 @@ public class BParticleSimMesh : MonoBehaviour
         particleMeshMap = new int[vertices.Length];
         List<Vector3> uniqueVertices = new List<Vector3>();
 
-        for (int i = 0; i < vertices.Length; i++)// far as I can tell the notion of a vertice map will pan out
-        //the same each time. this whole process might be replaced by a single predefined array.
+        for (int i = 0; i < vertices.Length; i++)
         {
             Vector3 worldPos = transform.TransformPoint(vertices[i]);
             int curIndex = -1;
@@ -356,9 +361,7 @@ public class BParticleSimMesh : MonoBehaviour
             }
         }
 
-        int[] testmap = { 0, 1, 2, 3, 4, 5, 6, 7, 2, 3, 4, 5, 6, 0, 1, 7, 1, 3, 5, 7, 6, 4, 2, 0 };
-        //return (particles, particleMeshMap);// need to return the mesh map too for later reassembly.
-        return (particles, testmap); // coming back to this later. initial tests seem that dymatic calcs are totally unneeded
+        return (particles, particleMeshMap);// need to return the mesh map too for later reassembly.
     }
 
 
